@@ -1,0 +1,69 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: interview-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${DB_NAME:-interview_chatbot}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DB_PASSWORD:-rootpass}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  tts:
+    build: ./tts_mms
+    container_name: interview-tts
+    restart: unless-stopped
+    environment:
+      MMS_HOST: 0.0.0.0
+      MMS_PORT: "5005"
+      MMS_MODEL: facebook/mms-tts-ron
+    ports:
+      - "5005:5005"
+    volumes:
+      - tts_models:/models
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:5005/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+
+  app:
+    build: .
+    container_name: interview-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      tts:
+        condition: service_started
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-rootpass}
+      DB_NAME: ${DB_NAME:-interview_chatbot}
+      SERVER_PORT: "8080"
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gpt-oss:20b}
+      MMS_TTS_URL: http://tts:5005/tts
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8080:8080"
+    volumes:
+      - voice_answers:/app/voice_answers
+      - tts_cache:/app/tts_cache
+
+volumes:
+  db_data:
+  tts_models:
+  voice_answers:
+  tts_cache:

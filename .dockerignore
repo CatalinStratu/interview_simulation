@@ -1,0 +1,23 @@
+.git
+.idea
+.vscode
+.DS_Store
+.env
+.env.*
+*.md
+
+# Build outputs
+interview-chatbot
+main
+*.exe
+*.test
+*.out
+
+# Runtime data — should live in volumes, not the image
+voice_answers/
+tts_cache/
+uploads/
+
+# Local Python venvs that may exist next to the sidecar
+tts_mms/.venv
+tts_mms/__pycache__

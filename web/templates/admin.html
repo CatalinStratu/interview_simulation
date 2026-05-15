@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Interview Chatbot</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Admin Dashboard</h1>
+            <nav>
+                <button id="questionsTabBtn" class="tab-btn active">Questions</button>
+                <button id="sessionsTabBtn" class="tab-btn">Interview Sessions</button>
+            </nav>
+        </header>
+
+        <!-- Questions Tab -->
+        <div id="questionsTab" class="tab-content active">
+            <div class="card">
+                <h2>Manage Questions</h2>
+
+                <div class="add-question-form">
+                    <h3>Add New Question</h3>
+                    <div class="form-group">
+                        <label for="questionText">Question Text</label>
+                        <textarea id="questionText" rows="3" placeholder="Enter your interview question"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="questionType">Question Type</label>
+                            <select id="questionType">
+                                <option value="technical">Technical</option>
+                                <option value="behavioral">Behavioral</option>
+                                <option value="situational">Situational</option>
+                                <option value="general">General</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="difficultyLevel">Difficulty</label>
+                            <select id="difficultyLevel">
+                                <option value="easy">Easy</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expectedDuration">Expected Duration (seconds)</label>
+                            <input type="number" id="expectedDuration" value="120" min="30" max="600">
+                        </div>
+                    </div>
+
+                    <button id="addQuestionBtn" class="btn btn-primary">Add Question</button>
+                </div>
+
+                <div class="questions-list">
+                    <h3>Existing Questions</h3>
+                    <div id="questionsList" class="list-container">
+                        <p class="loading">Loading questions...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sessions Tab -->
+        <div id="sessionsTab" class="tab-content">
+            <div class="card">
+                <h2>Interview Sessions</h2>
+                <div id="sessionsList" class="list-container">
+                    <p class="loading">Loading sessions...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Detail Modal -->
+        <div id="sessionModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Session Details</h2>
+                <div id="sessionDetails"></div>
+
+                <div class="remarks-section">
+                    <h3>Add Remark</h3>
+                    <div class="form-group">
+                        <label for="remarkText">Remark</label>
+                        <textarea id="remarkText" rows="3" placeholder="Enter your feedback"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="remarkRating">Rating (1-5)</label>
+                        <select id="remarkRating">
+                            <option value="">No Rating</option>
+                            <option value="1">1 - Poor</option>
+                            <option value="2">2 - Below Average</option>
+                            <option value="3">3 - Average</option>
+                            <option value="4">4 - Good</option>
+                            <option value="5">5 - Excellent</option>
+                        </select>
+                    </div>
+                    <button id="addRemarkBtn" class="btn btn-primary">Add Remark</button>
+                </div>
+
+                <div id="remarksList"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <a href="/" class="btn btn-secondary">Back to Interview</a>
+        </div>
+    </div>
+
+    <script src="/static/js/admin.js"></script>
+</body>
+</html>
