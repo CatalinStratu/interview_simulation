@@ -486,6 +486,60 @@
     height: 18px;
 }
 
+/* Intro Text */
+.intro-text {
+    margin-bottom: 25px;
+    padding: 18px 20px;
+    background: #f8f9ff;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: #333;
+}
+
+.intro-text p {
+    margin: 0 0 12px;
+}
+
+.intro-text p:last-child {
+    margin-bottom: 0;
+}
+
+.intro-text .intro-warning {
+    background: #fff7ed;
+    border-left: 3px solid #f59e0b;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: #7c2d12;
+}
+
+.intro-text .intro-warning strong {
+    color: #b45309;
+}
+
+.intro-text .intro-ready {
+    font-style: italic;
+    text-align: center;
+    color: #4f46e5;
+    font-weight: 600;
+    margin-top: 14px;
+}
+
+/* Closing Message */
+.complete-card .closing-message {
+    font-size: 1.05rem;
+    line-height: 1.55;
+    color: #333;
+    margin: 0 auto 25px;
+    max-width: 380px;
+    padding: 14px 18px;
+    background: #f5f3ff;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+    text-align: left;
+}
+
 /* Stop Word Info Box */
 .stop-word-info {
     margin-top: 25px;
