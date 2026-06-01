@@ -59,16 +59,3 @@ CREATE TABLE IF NOT EXISTS session_questions (
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
     UNIQUE KEY unique_session_question (session_id, question_id)
 );
-
--- Insert some sample questions
-INSERT INTO questions (question_text, question_type, difficulty_level) VALUES
-('Tell me about yourself and your professional background.', 'behavioral', 'easy'),
-('What are your greatest strengths and weaknesses?', 'behavioral', 'easy'),
-('Explain the concept of object-oriented programming.', 'technical', 'medium'),
-('What is the difference between a process and a thread?', 'technical', 'medium'),
-('How would you design a URL shortening service?', 'technical', 'hard'),
-('Describe a challenging project you worked on and how you overcame obstacles.', 'behavioral', 'medium'),
-('What is a RESTful API and what are its key principles?', 'technical', 'medium'),
-('How do you handle conflicts in a team environment?', 'behavioral', 'medium'),
-('Explain the CAP theorem in distributed systems.', 'technical', 'hard'),
-('Where do you see yourself in five years?', 'behavioral', 'easy');
