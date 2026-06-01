@@ -31,9 +31,10 @@ func (s *SessionService) StartSession(req models.StartSessionRequest) (*models.I
 	}
 	defer tx.Rollback()
 
-	// Fetch the questions first so we can store the true count
-	// (req.NumQuestions <= 0 means "all active questions").
-	questions, err := s.questionService.GetRandomQuestions(req.NumQuestions)
+	// Always use every active question, of every type and difficulty, served in
+	// the fixed order they are set in the DB (by id) — one after another, never
+	// random and never limited to a subset. NumQuestions is ignored on purpose.
+	questions, err := s.questionService.GetOrderedQuestions(0)
 	if err != nil {
 		return nil, err
 	}

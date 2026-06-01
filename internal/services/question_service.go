@@ -82,13 +82,19 @@ func (s *QuestionService) DeleteQuestion(id int) error {
 	return err
 }
 
-// GetRandomQuestions returns `count` random active questions. When count <= 0
-// it returns every active question (no LIMIT).
-func (s *QuestionService) GetRandomQuestions(count int) ([]models.Question, error) {
+// GetOrderedQuestions returns `count` active questions in the fixed order they
+// were set in the database (by id ascending) — one after another, never
+// random. When count <= 0 it returns every active question (no LIMIT).
+func (s *QuestionService) GetOrderedQuestions(count int) ([]models.Question, error) {
 	base := `SELECT id, question_text, question_type, difficulty_level,
 	          expected_duration, created_at, updated_at, is_active
-	          FROM questions WHERE is_active = TRUE ORDER BY RAND()`
+	          FROM questions ORDER BY id ASC`
 
+	return s.fetchQuestions(base, count)
+}
+
+// fetchQuestions runs the given base query, applying a LIMIT when count > 0.
+func (s *QuestionService) fetchQuestions(base string, count int) ([]models.Question, error) {
 	var (
 		rows *sql.Rows
 		err  error
