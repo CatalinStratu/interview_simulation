@@ -75,6 +75,7 @@ func main() {
 	// API routes - Admin Question Management
 	api.HandleFunc("/admin/questions", questionHandler.GetAllQuestions).Methods("GET")
 	api.HandleFunc("/admin/questions", questionHandler.CreateQuestion).Methods("POST")
+	api.HandleFunc("/admin/questions/reorder", questionHandler.ReorderQuestions).Methods("PUT")
 	api.HandleFunc("/admin/questions/{id}", questionHandler.GetQuestion).Methods("GET")
 	api.HandleFunc("/admin/questions/{id}", questionHandler.DeleteQuestion).Methods("DELETE")
 

@@ -10,9 +10,16 @@ type Question struct {
 	QuestionType     string    `json:"question_type"`
 	DifficultyLevel  string    `json:"difficulty_level"`
 	ExpectedDuration int       `json:"expected_duration"`
+	Position         int       `json:"position"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
 	IsActive         bool      `json:"is_active"`
+}
+
+// ReorderQuestionsRequest carries the new top-to-bottom ordering of question
+// ids set from the admin UI.
+type ReorderQuestionsRequest struct {
+	IDs []int `json:"ids"`
 }
 
 type InterviewSession struct {

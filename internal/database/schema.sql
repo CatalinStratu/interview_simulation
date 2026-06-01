@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS questions (
     question_type VARCHAR(50) DEFAULT 'technical', -- technical, behavioral, etc.
     difficulty_level VARCHAR(20) DEFAULT 'medium', -- easy, medium, hard
     expected_duration INT DEFAULT 120, -- expected answer duration in seconds
+    position INT NOT NULL DEFAULT 0, -- display/asking order (lower = earlier)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT TRUE

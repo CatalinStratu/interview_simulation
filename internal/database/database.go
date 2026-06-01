@@ -39,7 +39,44 @@ func (db *DB) RunMigrations() error {
 		return fmt.Errorf("error executing migrations: %w", err)
 	}
 
+	if err := db.ensureQuestionPosition(); err != nil {
+		return fmt.Errorf("error ensuring question position column: %w", err)
+	}
+
 	log.Println("Database migrations completed successfully")
+	return nil
+}
+
+// ensureQuestionPosition adds the questions.position column on databases created
+// before it existed (MySQL has no ADD COLUMN IF NOT EXISTS), then backfills any
+// rows still at 0 so every question has a distinct order.
+func (db *DB) ensureQuestionPosition() error {
+	var exists int
+	err := db.QueryRow(`SELECT COUNT(*) FROM information_schema.columns
+	    WHERE table_schema = DATABASE() AND table_name = 'questions' AND column_name = 'position'`).Scan(&exists)
+	if err != nil {
+		return err
+	}
+	if exists == 0 {
+		if _, err := db.Exec(`ALTER TABLE questions ADD COLUMN position INT NOT NULL DEFAULT 0`); err != nil {
+			return err
+		}
+	}
+
+	// Backfill: if every question is still at position 0 (fresh column), number
+	// them by id so the existing order is preserved.
+	var maxPos int
+	if err := db.QueryRow(`SELECT COALESCE(MAX(position), 0) FROM questions`).Scan(&maxPos); err != nil {
+		return err
+	}
+	if maxPos == 0 {
+		if _, err := db.Exec(`SET @r := 0`); err != nil {
+			return err
+		}
+		if _, err := db.Exec(`UPDATE questions SET position = (@r := @r + 1) ORDER BY id`); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

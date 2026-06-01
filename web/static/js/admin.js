@@ -24,6 +24,7 @@ const addRemarkBtn = document.getElementById('addRemarkBtn');
 const remarksList = document.getElementById('remarksList');
 
 let currentSessionId = null;
+let currentQuestions = [];
 
 // Event listeners
 questionsTabBtn.addEventListener('click', () => switchTab('questions'));
@@ -77,22 +78,55 @@ async function loadQuestions() {
 }
 
 function displayQuestions(questions) {
-    if (!questions || questions.length === 0) {
+    currentQuestions = questions || [];
+
+    if (currentQuestions.length === 0) {
         questionsList.innerHTML = '<p class="loading">No questions available</p>';
         return;
     }
 
-    questionsList.innerHTML = questions.map(q => `
+    questionsList.innerHTML = currentQuestions.map((q, i) => `
         <div class="question-item">
-            <h4>${escapeHtml(q.question_text)}</h4>
-            <div class="question-meta">
-                <span class="badge badge-${q.question_type}">${q.question_type}</span>
-                <span class="badge badge-${q.difficulty_level}">${q.difficulty_level}</span>
-                <span>Duration: ${q.expected_duration}s</span>
+            <div class="question-order">
+                <button class="btn-move" title="Move up" onclick="moveQuestion(${i}, -1)" ${i === 0 ? 'disabled' : ''}>▲</button>
+                <span class="order-num">${i + 1}</span>
+                <button class="btn-move" title="Move down" onclick="moveQuestion(${i}, 1)" ${i === currentQuestions.length - 1 ? 'disabled' : ''}>▼</button>
             </div>
-            <button class="btn-delete" onclick="deleteQuestion(${q.id})">Delete</button>
+            <div class="question-body">
+                <h4>${escapeHtml(q.question_text)}</h4>
+                <div class="question-meta">
+                    <span class="badge badge-${q.question_type}">${q.question_type}</span>
+                    <span class="badge badge-${q.difficulty_level}">${q.difficulty_level}</span>
+                    <span>Duration: ${q.expected_duration}s</span>
+                </div>
+                <button class="btn-delete" onclick="deleteQuestion(${q.id})">Delete</button>
+            </div>
         </div>
     `).join('');
+}
+
+// Move a question up (-1) or down (+1), persist the new order, and re-render.
+async function moveQuestion(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= currentQuestions.length) return;
+
+    // Swap locally and re-render immediately for snappy feedback.
+    const reordered = currentQuestions.slice();
+    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+    displayQuestions(reordered);
+
+    try {
+        const response = await fetch(`${API_BASE}/admin/questions/reorder`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: reordered.map(q => q.id) })
+        });
+        if (!response.ok) throw new Error('Failed to save order');
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to save order');
+        await loadQuestions(); // reload the real order on failure
+    }
 }
 
 async function addQuestion() {

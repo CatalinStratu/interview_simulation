@@ -16,8 +16,8 @@ func NewQuestionService(db *sql.DB) *QuestionService {
 
 func (s *QuestionService) GetAllQuestions() ([]models.Question, error) {
 	query := `SELECT id, question_text, question_type, difficulty_level,
-	          expected_duration, created_at, updated_at, is_active
-	          FROM questions WHERE is_active = TRUE ORDER BY created_at DESC`
+	          expected_duration, position, created_at, updated_at, is_active
+	          FROM questions WHERE is_active = TRUE ORDER BY position ASC, id ASC`
 
 	rows, err := s.db.Query(query)
 	if err != nil {
@@ -29,7 +29,7 @@ func (s *QuestionService) GetAllQuestions() ([]models.Question, error) {
 	for rows.Next() {
 		var q models.Question
 		err := rows.Scan(&q.ID, &q.QuestionText, &q.QuestionType, &q.DifficultyLevel,
-			&q.ExpectedDuration, &q.CreatedAt, &q.UpdatedAt, &q.IsActive)
+			&q.ExpectedDuration, &q.Position, &q.CreatedAt, &q.UpdatedAt, &q.IsActive)
 		if err != nil {
 			return nil, err
 		}
@@ -41,12 +41,12 @@ func (s *QuestionService) GetAllQuestions() ([]models.Question, error) {
 
 func (s *QuestionService) GetQuestionByID(id int) (*models.Question, error) {
 	query := `SELECT id, question_text, question_type, difficulty_level,
-	          expected_duration, created_at, updated_at, is_active
+	          expected_duration, position, created_at, updated_at, is_active
 	          FROM questions WHERE id = ?`
 
 	var q models.Question
 	err := s.db.QueryRow(query, id).Scan(&q.ID, &q.QuestionText, &q.QuestionType,
-		&q.DifficultyLevel, &q.ExpectedDuration, &q.CreatedAt, &q.UpdatedAt, &q.IsActive)
+		&q.DifficultyLevel, &q.ExpectedDuration, &q.Position, &q.CreatedAt, &q.UpdatedAt, &q.IsActive)
 
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("question not found")
@@ -59,8 +59,9 @@ func (s *QuestionService) GetQuestionByID(id int) (*models.Question, error) {
 }
 
 func (s *QuestionService) CreateQuestion(req models.CreateQuestionRequest) (*models.Question, error) {
-	query := `INSERT INTO questions (question_text, question_type, difficulty_level, expected_duration)
-	          VALUES (?, ?, ?, ?)`
+	// New questions go to the end of the list.
+	query := `INSERT INTO questions (question_text, question_type, difficulty_level, expected_duration, position)
+	          VALUES (?, ?, ?, ?, (SELECT next_pos FROM (SELECT COALESCE(MAX(position), 0) + 1 AS next_pos FROM questions) AS t))`
 
 	result, err := s.db.Exec(query, req.QuestionText, req.QuestionType,
 		req.DifficultyLevel, req.ExpectedDuration)
@@ -82,13 +83,42 @@ func (s *QuestionService) DeleteQuestion(id int) error {
 	return err
 }
 
-// GetOrderedQuestions returns `count` active questions in the fixed order they
-// were set in the database (by id ascending) — one after another, never
-// random. When count <= 0 it returns every active question (no LIMIT).
+// UpdateQuestionOrder persists a new top-to-bottom ordering. The given ids are
+// assigned positions 1..N in the order received; the same order is then used by
+// both the admin list and the interview (chestionar).
+func (s *QuestionService) UpdateQuestionOrder(ids []int) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(`UPDATE questions SET position = ? WHERE id = ?`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for i, id := range ids {
+		if _, err := stmt.Exec(i+1, id); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+// GetOrderedQuestions returns `count` active questions in the order set in the
+// admin (by position) — one after another, never random. When count <= 0 it
+// returns every active question (no LIMIT).
 func (s *QuestionService) GetOrderedQuestions(count int) ([]models.Question, error) {
 	base := `SELECT id, question_text, question_type, difficulty_level,
-	          expected_duration, created_at, updated_at, is_active
-	          FROM questions ORDER BY id ASC`
+	          expected_duration, position, created_at, updated_at, is_active
+	          FROM questions WHERE is_active = TRUE ORDER BY position ASC, id ASC`
 
 	return s.fetchQuestions(base, count)
 }
@@ -113,7 +143,7 @@ func (s *QuestionService) fetchQuestions(base string, count int) ([]models.Quest
 	for rows.Next() {
 		var q models.Question
 		err := rows.Scan(&q.ID, &q.QuestionText, &q.QuestionType, &q.DifficultyLevel,
-			&q.ExpectedDuration, &q.CreatedAt, &q.UpdatedAt, &q.IsActive)
+			&q.ExpectedDuration, &q.Position, &q.CreatedAt, &q.UpdatedAt, &q.IsActive)
 		if err != nil {
 			return nil, err
 		}

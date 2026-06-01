@@ -76,6 +76,28 @@ func (h *QuestionHandler) CreateQuestion(w http.ResponseWriter, r *http.Request)
 	respondWithJSON(w, http.StatusCreated, question)
 }
 
+// ReorderQuestions persists a new top-to-bottom order of questions. The same
+// order is used by the admin list and the interview (chestionar).
+func (h *QuestionHandler) ReorderQuestions(w http.ResponseWriter, r *http.Request) {
+	var req models.ReorderQuestionsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	if len(req.IDs) == 0 {
+		respondWithError(w, http.StatusBadRequest, "No question order provided")
+		return
+	}
+
+	if err := h.questionService.UpdateQuestionOrder(req.IDs); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to reorder questions")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"message": "Order updated successfully"})
+}
+
 func (h *QuestionHandler) DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])

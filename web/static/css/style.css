@@ -310,6 +310,55 @@ nav {
     box-shadow: var(--shadow);
 }
 
+/* Reorderable question row: order controls on the left, content on the right */
+.question-item {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+}
+
+.question-body {
+    flex: 1;
+}
+
+.question-order {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 36px;
+    border-right: 1px solid var(--border-color, #e0e0e0);
+    padding-right: 12px;
+}
+
+.question-order .order-num {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 0.95rem;
+}
+
+.btn-move {
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    width: 28px;
+    height: 24px;
+    cursor: pointer;
+    line-height: 1;
+    font-size: 0.8rem;
+}
+
+.btn-move:hover:not(:disabled) {
+    filter: brightness(1.1);
+}
+
+.btn-move:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
 .question-item h4,
 .session-item h4 {
     margin-bottom: 10px;
